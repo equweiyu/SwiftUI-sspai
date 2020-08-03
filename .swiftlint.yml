@@ -1,0 +1,3 @@
+#swiftlint: https://github.com/realm/SwiftLint/blob/master/README_CN.md
+disabled_rules:
+- trailing_whitespace #Lines should not have trailing whitespace.

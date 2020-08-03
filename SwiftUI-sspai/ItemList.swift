@@ -10,9 +10,9 @@ import SwiftUI
 import Combine
 
 struct ItemList: View {
-
+    
     @ObservedObject var viewModel = ItemListViewModel()
-
+    
     var body: some View {
         NavigationView {
             List(0 ..< self.viewModel.items.count, id: \.self) { index in
@@ -21,8 +21,10 @@ struct ItemList: View {
                         .onAppear {
                             self.viewModel.fetchItemListMoreIfNeedPublisher.send(index)
                     }
-                    NavigationLink(destination: WebView(urlString: "https://sspai.com/post/\(self.viewModel.items[index].id)" ).navigationBarTitle("", displayMode: .inline)
-                        .edgesIgnoringSafeArea(Edge.Set.all)
+                    NavigationLink(destination:
+                        WebView(urlString: "https://sspai.com/post/\(self.viewModel.items[index].id)" )
+                            .navigationBarTitle("", displayMode: .inline)
+                            .edgesIgnoringSafeArea(Edge.Set.all)
                     ) {
                         EmptyView()
                     }
@@ -39,7 +41,7 @@ struct ItemList: View {
             }))
         }
     }
-
+    
 }
 
 struct ItemList_Previews: PreviewProvider {
@@ -53,7 +55,7 @@ class ItemListViewModel: ObservableObject {
     @Published var items: [ItemBean] = []
     let fetchItemListNewPublisher = PassthroughSubject<Void, Never>()
     let fetchItemListMoreIfNeedPublisher = PassthroughSubject<Int, Never>()
-
+    
     private let fetchItemList = { (url: URL) in
         URLSession.shared.dataTaskPublisher(for: url)
             .eraseToAnyPublisher()
@@ -62,16 +64,16 @@ class ItemListViewModel: ObservableObject {
             .decode(type: NetworkResponse<[ItemBean]>.self, decoder: JSONDecoder())
             .map({ $0.data })
     }
-
+    
     init() {
-
+        
         fetchItemListNewPublisher
             .map({ URL(string: "https://sspai.com/api/v1/article/index/page/get")! })
             .setFailureType(to: Error.self)
             .flatMap(maxPublishers: .max(1), fetchItemList)
             .replaceError(with: [])
             .assign(to: \.items, on: self).store(in: &cancellableSet)
-
+        
         fetchItemListMoreIfNeedPublisher
             .filter({ $0 == self.items.count - 1 })
             .map({ _ in URL(string: "https://sspai.com/api/v1/article/index/page/get?limit=10&offset=\(self.items.count)")! })
