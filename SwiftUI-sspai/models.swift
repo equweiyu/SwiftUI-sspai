@@ -7,7 +7,7 @@
 //
 
 import Foundation
-struct NetworkResponse<T: Codable> : Codable {
+struct NetworkResponse<T: Codable>: Codable {
     let msg: String
     let error: Int
     let data: T

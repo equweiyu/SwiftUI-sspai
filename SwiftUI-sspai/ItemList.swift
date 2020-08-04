@@ -18,9 +18,7 @@ struct ItemList: View {
             List(0 ..< self.viewModel.items.count, id: \.self) { index in
                 ZStack {
                     ItemCell(item: self.viewModel.items[index])
-                        .onAppear {
-                            self.viewModel.fetchItemListMoreIfNeedPublisher.send(index)
-                    }
+                        .onAppear { self.viewModel.fetchItemListMoreIfNeedPublisher.send(index) }
                     NavigationLink(destination:
                         WebView(urlString: "https://sspai.com/post/\(self.viewModel.items[index].id)" )
                             .navigationBarTitle("", displayMode: .inline)
@@ -31,7 +29,7 @@ struct ItemList: View {
                 }
             }
             .onAppear {
-                self.viewModel.fetchItemListNewPublisher.send({}())
+                self.viewModel.fetchItemListNewPublisher.send(())
             }
             .navigationBarTitle("sspai")
             .navigationBarItems(trailing: Button(action: {
@@ -58,11 +56,11 @@ class ItemListViewModel: ObservableObject {
     
     private let fetchItemList = { (url: URL) in
         URLSession.shared.dataTaskPublisher(for: url)
-            .eraseToAnyPublisher()
             .receive(on: DispatchQueue.main)
-            .map({ $0.data })
+            .map(\.data)
             .decode(type: NetworkResponse<[ItemBean]>.self, decoder: JSONDecoder())
-            .map({ $0.data })
+            .map(\.data)
+            .eraseToAnyPublisher()
     }
     
     init() {
@@ -72,7 +70,8 @@ class ItemListViewModel: ObservableObject {
             .setFailureType(to: Error.self)
             .flatMap(maxPublishers: .max(1), fetchItemList)
             .replaceError(with: [])
-            .assign(to: \.items, on: self).store(in: &cancellableSet)
+            .assign(to: \.items, on: self)
+            .store(in: &cancellableSet)
         
         fetchItemListMoreIfNeedPublisher
             .filter({ $0 == self.items.count - 1 })
@@ -81,6 +80,7 @@ class ItemListViewModel: ObservableObject {
             .flatMap(maxPublishers: .max(1), fetchItemList)
             .replaceError(with: [])
             .map({ self.items + $0 })
-            .assign(to: \.items, on: self).store(in: &cancellableSet)
+            .assign(to: \.items, on: self)
+            .store(in: &cancellableSet)
     }
 }
