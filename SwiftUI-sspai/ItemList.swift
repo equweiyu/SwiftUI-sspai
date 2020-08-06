@@ -20,9 +20,7 @@ struct ItemList: View {
                     ItemCell(item: self.viewModel.items[index])
                         .onAppear { self.viewModel.fetchItemListMoreIfNeedPublisher.send(index) }
                     NavigationLink(destination:
-                        WebView(urlString: "https://sspai.com/post/\(self.viewModel.items[index].id)" )
-                            .navigationBarTitle("", displayMode: .inline)
-                            .edgesIgnoringSafeArea(Edge.Set.all)
+                        DetailView(item: self.viewModel.items[index])
                     ) {
                         EmptyView()
                     }
